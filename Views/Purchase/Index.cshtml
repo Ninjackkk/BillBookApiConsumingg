@@ -1,0 +1,160 @@
+﻿@model List<Category>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Categories</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .quantity-input {
+            width: 50px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Select a Category</h2>
+    <select id="categories">
+        <option value="">-- Select a Category --</option>
+        @foreach (var category in Model)
+        {
+            <option value="@category.CategoryId">@category.CategoryName</option>
+        }
+    </select>
+
+    <h3 id="itemsHeader" style="display: none;">Items in Selected Category</h3>
+    <form asp-action="NewPurchase" method="post">
+        <h3>Purchase Order Details</h3>
+        Bill From:
+        <input type="text" name="PurchaseOrder.PartyName" placeholder="Party Name" required />
+        Valid Till:
+        <input type="date" name="PurchaseOrder.ValidTill" required />
+
+        <h3>Total Amount: <span id="totalAmount">0</span></h3>
+        <input type="hidden" name="PurchaseOrder.Amount" id="totalAmountInput" value="0" />
+
+        <h3>Items</h3>
+        <table id="itemsTable" style="display: none;">
+            <thead>
+                <tr>
+                    <th>Select</th>
+                    <th>Item Name</th>
+                    <th>Item Code</th>
+                    <th>Sales Price</th>
+                    <th>Purchase Price</th>
+                    <th>Current Stock</th>
+                    <th>Quantity</th>
+                </tr>
+            </thead>
+            <tbody id="itemsBody">
+                <!-- Items will be dynamically appended here -->
+            </tbody>
+        </table>
+
+        <input type="submit" value="New Order" />
+    </form>
+    <p id="noItemsMessage" style="display: none;">No items found for this category.</p>
+
+    <script>
+        let index = 0; // Initialize a global index
+        let selectedcat = "";
+        let totalAmount = 0; // Initialize total amount variable
+
+        $(function () {
+            $('#categories').change(function () {
+                const categoryId = $(this).val();
+                selectedcat = $(this).find('option:selected').text(); // Get the selected category name
+
+                $('#itemsBody').empty(); // Clear previous items
+                index = 0; // Reset index
+                totalAmount = 0; // Reset total amount
+                $('#totalAmount').text('0'); // Reset total amount display
+                $('#totalAmountInput').val(totalAmount.toFixed(2)); // Reset hidden input
+
+                if (categoryId) {
+                    $.getJSON('@Url.Action("GetItemsByCategoryId", "Purchase")', { categoryId })
+                        .done(function (data) {
+                            if (data.length) {
+                                data.forEach(item => {
+                                    $('#itemsBody').append(`
+                                                <tr>
+                                                    <td><input type="checkbox" class="item-checkbox" /></td>
+                                                    <td>${item.itemName}</td>
+                                                    <td>${item.itemCode}</td>
+                                                    <td>${item.salesPrice}</td>
+                                                    <td>${item.purchasePrice}</td>
+                                                    <td>${item.openingStock}</td>
+                                                    <td>
+                                                        <input type="number" class="quantity-input" name="Stocks[${index}].Quantity" min="1" max="${item.openingStock}" value="1" />
+                                                        <input type="hidden" name="Stocks[${index}].ItemName" value="${item.itemName}" />
+                                                        <input type="hidden" name="Stocks[${index}].ItemCode" value="${item.itemCode}" />
+                                                        <input type="hidden" name="Stocks[${index}].Category" value="${selectedcat}" />
+                                                        <input type="hidden" name="Stocks[${index}].PurchaseOrderId" value="0" />
+                                                    </td>
+                                                </tr>
+                                            `);
+                                    index++; // Increment the index for the next item
+                                });
+                                $('#itemsHeader').show();
+                                $('#itemsTable').show();
+                                $('#noItemsMessage').hide();
+                            } else {
+                                $('#itemsHeader').hide();
+                                $('#itemsTable').hide();
+                                $('#noItemsMessage').show();
+                            }
+                        });
+                } else {
+                    $('#itemsHeader').hide();
+                    $('#itemsTable').hide();
+                    $('#noItemsMessage').hide();
+                }
+            });
+
+            // Update total amount whenever an item is selected or quantity changes
+            $(document).on('change', '.quantity-input, .item-checkbox', function () {
+                updateTotalAmount();
+            });
+
+            function updateTotalAmount() {
+                totalAmount = 0; // Reset total for recalculation
+
+                $('#itemsBody tr').each(function () {
+                    const checkbox = $(this).find('.item-checkbox');
+                    const quantityInput = $(this).find('.quantity-input');
+
+                    if (checkbox.is(':checked')) {
+                        const purchasePrice = parseFloat($(this).find('td').eq(4).text()); // Assuming Purchase Price is in the 5th column
+                        const quantity = parseInt(quantityInput.val());
+
+                        if (!isNaN(purchasePrice) && !isNaN(quantity)) {
+                            totalAmount += purchasePrice * quantity;
+                        }
+                    }
+                });
+
+                // Update the total amount display
+                $('#totalAmount').text(totalAmount.toFixed(2)); // Format to two decimal places
+
+                // Update the hidden input with the total amount
+                $('#totalAmountInput').val(totalAmount.toFixed(2));
+            }
+        });
+    </script>
+</body>
+</html>
