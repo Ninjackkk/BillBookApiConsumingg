@@ -1,5 +1,7 @@
 ﻿using Azure;
 using BillBookApiConsuming.Models;
+using iTextSharp.text.pdf;
+using iTextSharp.text;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Text;
@@ -162,6 +164,62 @@ namespace BillBookApiConsuming.Controllers
 
 
 
+
+
+
+
+
+        public async Task<IActionResult> DownloadInvoice(int purchaseOrderId)
+        {
+            // Fetch purchase order details from the API
+            var response = await client.GetAsync($"https://localhost:44381/api/Purchase/GetAllPurchaseOrderById?PID={purchaseOrderId}");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return NotFound(); // Handle not found
+            }
+
+            var jsondata = await response.Content.ReadAsStringAsync();
+            var purchaseRequest = JsonConvert.DeserializeObject<PurchaseRequest>(jsondata);
+
+            using (var stream = new MemoryStream())
+            {
+                // Create PDF document
+                Document document = new Document();
+                PdfWriter.GetInstance(document, stream);
+                document.Open();
+
+                // Add content
+                document.Add(new Paragraph($"Invoice for Purchase Order {purchaseRequest.PurchaseOrder.PurchaseOrderId}", FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 20)));
+                document.Add(new Paragraph($"Party Name: {purchaseRequest.PurchaseOrder.PartyName}"));
+                document.Add(new Paragraph($"Purchase Date: {purchaseRequest.PurchaseOrder.PurchaseDate}"));
+                document.Add(new Paragraph($"Status: {purchaseRequest.PurchaseOrder.Status}"));
+                document.Add(new Paragraph($"Total Amount: {purchaseRequest.PurchaseOrder.Amount}"));
+                document.Add(new Paragraph($"Valid Till: {purchaseRequest.PurchaseOrder.ValidTill}"));
+                document.Add(new Paragraph("\nStock Details:"));
+
+                // Create and populate the table
+                var table = new PdfPTable(4);
+                table.AddCell("Item Name");
+                table.AddCell("Item Code");
+                table.AddCell("Quantity");
+                table.AddCell("Category");
+
+                foreach (var stock in purchaseRequest.Stocks)
+                {
+                    table.AddCell(stock.ItemName);
+                    table.AddCell(stock.ItemCode);
+                    table.AddCell(stock.Quantity.ToString());
+                    table.AddCell(stock.Category);
+                }
+
+                document.Add(table);
+                document.Close();
+
+                // Return the PDF file
+                return File(stream.ToArray(), "application/pdf", $"Invoice_{purchaseOrderId}.pdf");
+            }
+        }
 
 
 

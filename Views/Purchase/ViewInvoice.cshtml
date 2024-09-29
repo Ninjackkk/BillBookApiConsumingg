@@ -49,7 +49,7 @@
             </tbody>
         </table>
         <div class="text-center mt-4">
-            <button onclick="window.print();" class="btn btn-success">Download Invoice</button>
+            <a href="@Url.Action("DownloadInvoice", "Purchase", new { purchaseOrderId = Model.PurchaseOrder.PurchaseOrderId })" class="btn btn-danger">Download PDF Invoice</a>
             <a href="@Url.Action("ListPurchaseOrders", "Purchase")" class="btn btn-primary">Back to Purchase Orders</a>
         </div>
     </div>
