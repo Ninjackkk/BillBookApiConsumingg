@@ -1,0 +1,27 @@
+﻿@{
+    ViewBag.Title = "Payment";
+}
+
+<h2>Payment</h2>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+<form asp-action="SubmitPayment" method="post">
+    <input type="hidden" name="purchaseOrderId" value="@ViewBag.PurchaseOrderId" />
+
+    <div class="form-group">
+        <label for="paymentMethod">Select Payment Method</label>
+        <select class="form-control" id="paymentMethod" name="paymentMethod">
+            <option value="">Select...</option>
+            <option value="UPI">UPI (Display Only)</option>
+            <option value="Cash">Cash</option>
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit Payment</button>
+</form>

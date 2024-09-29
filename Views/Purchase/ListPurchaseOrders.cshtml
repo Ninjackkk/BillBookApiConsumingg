@@ -51,10 +51,15 @@
                         <td>@order.ValidTill</td>
                         <td>@order.Status</td>
                         <td>@order.Amount</td>
-                        <td>
+                       <td> @if (order.Status == "Paid")
+                        {
                             <a class="btn btn-info" asp-route-PurchaseOrderId="@order.PurchaseOrderId" asp-action="ViewInvoice">View Invoice</a>
+                        }
+                        else
+                        {
+                                <a class="btn btn-warning" asp-route-PurchaseOrderId="@order.PurchaseOrderId" asp-action="Payment">Payment</a>
+                        }
                         </td>
-
                     </tr>
                 }
             </tbody>

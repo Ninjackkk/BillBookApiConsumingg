@@ -5,15 +5,20 @@ using iTextSharp.text;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Text;
+using Microsoft.EntityFrameworkCore;
+using BillBookApiConsuming.Data;
 
 namespace BillBookApiConsuming.Controllers
 {
     public class PurchaseController : Controller
     {
         HttpClient client;                      //Declaring global object of HttpClient class 
-
-        public PurchaseController()
+        private readonly ApplicationDbContext db;
+        public PurchaseController(ApplicationDbContext db)
         {
+
+            this.db = db;
+
             HttpClientHandler clientHandler = new HttpClientHandler();
             clientHandler.ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => { return true; };
 
@@ -220,6 +225,40 @@ namespace BillBookApiConsuming.Controllers
                 return File(stream.ToArray(), "application/pdf", $"Invoice_{purchaseOrderId}.pdf");
             }
         }
+
+
+        // Doing Payment directly
+
+        public IActionResult Payment(int purchaseOrderId)
+        {
+            ViewBag.PurchaseOrderId = purchaseOrderId;
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SubmitPayment(int purchaseOrderId, string paymentMethod)
+        {
+            if (string.IsNullOrEmpty(paymentMethod))
+            {
+                return BadRequest("Invalid payment method.");
+            }
+
+            var purchaseOrder = await db.PurchaseOrders.FindAsync(purchaseOrderId);
+            if (purchaseOrder == null)
+            {
+                return NotFound("Purchase order not found.");
+            }
+
+            purchaseOrder.Status = "Paid";
+            await db.SaveChangesAsync(); // Save changes to the database
+
+            TempData["SuccessMessage"] = "Payment processed successfully.";
+            return RedirectToAction("ListPurchaseOrders");
+        }
+
+
+
+
 
 
 
