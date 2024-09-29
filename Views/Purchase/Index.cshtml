@@ -27,6 +27,10 @@
         }
     </style>
 </head>
+
+<a href="@Url.Action("ListPurchaseOrders", "Purchase")" class="btn btn-primary">View Purchase Orders</a>
+
+
 <body>
     <h2>Select a Category</h2>
     <select id="categories">
@@ -107,7 +111,7 @@
                                                     <td>${item.purchasePrice}</td>
                                                     <td>${item.openingStock}</td>
                                                     <td>
-                                                        <input type="number" class="quantity-input" name="Stocks[${index}].Quantity" min="1" max="${item.openingStock}" value="1"/>
+                                                        <input type="number" class="quantity-input" name="Stocks[${index}].Quantity" min="0" max="${item.openingStock}" value="0"/>
                                                         <input type="hidden" name="Stocks[${index}].ItemName" value="${item.itemName}" />
                                                         <input type="hidden" name="Stocks[${index}].ItemCode" value="${item.itemCode}" />
                                                         <input type="hidden" name="Stocks[${index}].HSNCode" value="${item.HSNCode}" />

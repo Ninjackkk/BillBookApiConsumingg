@@ -1,0 +1,57 @@
+﻿@model BillBookApiConsuming.Models.PurchaseRequest
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Invoice - Purchase Order @Model.PurchaseOrder.PurchaseOrderId</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        /* Basic styling for the invoice */
+        .invoice {
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container invoice">
+        <h2 class="text-center">Invoice for Purchase Order @Model.PurchaseOrder.PurchaseOrderId</h2>
+
+        <h3>Purchase Order Details</h3>
+        <ul class="list-group">
+            <li class="list-group-item">Party Name: @Model.PurchaseOrder.PartyName</li>
+            <li class="list-group-item">Purchase Date: @Model.PurchaseOrder.PurchaseDate</li>
+            <li class="list-group-item">Status: @Model.PurchaseOrder.Status</li>
+            <li class="list-group-item">Total Amount: @Model.PurchaseOrder.Amount</li>
+            <li class="list-group-item">Valid Till: @Model.PurchaseOrder.ValidTill</li>
+        </ul>
+
+        <h3 class="mt-4">Stock Details</h3>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Item Name</th>
+                    <th>Item Code</th>
+                    <th>Quantity</th>
+                    <th>Category</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var stock in Model.Stocks)
+                {
+                    <tr>
+                        <td>@stock.ItemName</td>
+                        <td>@stock.ItemCode</td>
+                        <td>@stock.Quantity</td>
+                        <td>@stock.Category</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <div class="text-center mt-4">
+            <button onclick="window.print();" class="btn btn-success">Download Invoice</button>
+            <a href="@Url.Action("ListPurchaseOrders", "Purchase")" class="btn btn-primary">Back to Purchase Orders</a>
+        </div>
+    </div>
+</body>
+</html>

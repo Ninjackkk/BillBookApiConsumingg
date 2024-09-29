@@ -1,0 +1,64 @@
+﻿@model List<BillBookApiConsuming.Models.PurchaseOrder>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>List of Purchase Orders</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        table {
+            width: 100%;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <a href="@Url.Action("Index", "Purchase")" class="btn btn-primary">Create Purchase Order</a>
+
+
+
+    <div class="container">
+        <h2>Purchase Orders</h2>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success">
+                @TempData["SuccessMessage"]
+            </div>
+        }
+
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Purchase Order ID</th>
+                    <th>Party Name</th>
+                    <th>Purchase Date</th>
+                    <th>Due In</th>
+                    <th>Status</th>
+                    <th>Amount</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var order in Model)
+                {
+                    <tr>
+                        <td>@order.PurchaseOrderId</td>
+                        <td>@order.PartyName</td>
+                        <td>@order.PurchaseDate</td>
+                        <td>@order.ValidTill</td>
+                        <td>@order.Status</td>
+                        <td>@order.Amount</td>
+                        <td>
+                            <a class="btn btn-info" asp-route-PurchaseOrderId="@order.PurchaseOrderId" asp-action="ViewInvoice">View Invoice</a>
+                        </td>
+
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

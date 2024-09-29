@@ -59,13 +59,25 @@ namespace BillBookApiConsuming.Controllers
         [HttpPost]
         public async Task<IActionResult> NewPurchase(PurchaseRequest purchaseRequest)
         {
-            if (purchaseRequest == null)
+            if (purchaseRequest == null || purchaseRequest.Stocks == null)
             {
                 return BadRequest("Invalid purchase request.");
             }
+
+            // Filter stocks to include only those with a quantity greater than zero
+            purchaseRequest.Stocks = purchaseRequest.Stocks
+                .Where(stock => stock.Quantity > 0)
+                .ToList();
+
+            if (!purchaseRequest.Stocks.Any())
+            {
+                return BadRequest("No items selected for purchase.");
+            }
+
             purchaseRequest.PurchaseOrder.PurchaseDate = DateTime.Now;
             purchaseRequest.PurchaseOrder.Status = "Unpaid";
-            purchaseRequest.PurchaseOrder.BusinessId = 1001;// we have to take through session
+            purchaseRequest.PurchaseOrder.BusinessId = 1001; // we have to take through session
+
             // API call to create a new purchase order
             using (var apiClient = new HttpClient())
             {
@@ -75,13 +87,13 @@ namespace BillBookApiConsuming.Controllers
 
                 if (result.IsSuccessStatusCode)
                 {
-                    return Ok("Purchase order created successfully.");
+                    TempData["SuccessMessage"] = "Purchase order created successfully.";
+                    return RedirectToAction("ListPurchaseOrders"); // Redirect to the ListPurchaseOrders action
                 }
 
                 return BadRequest("Error creating purchase order.");
             }
         }
-
 
         private async Task<List<Parties>> GetAllPartiesAsync()
         {
@@ -112,6 +124,38 @@ namespace BillBookApiConsuming.Controllers
         //    }
         //    return Json(stockList); // Return JSON data
         //}
+
+
+        public async Task<IActionResult> ListPurchaseOrders()
+        {
+            var apiClient = new HttpClient();
+            var response = await apiClient.GetAsync("https://localhost:44381/api/Purchase/GetAllPurchaseOrders");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var jsondata = await response.Content.ReadAsStringAsync();
+                var purchaseOrders = JsonConvert.DeserializeObject<List<PurchaseOrder>>(jsondata);
+                return View(purchaseOrders);
+            }
+
+            return View(new List<PurchaseOrder>());
+        }
+
+        public async Task<IActionResult> ViewInvoice(int PurchaseOrderId)
+        {
+            // Call the API to get purchase order details by ID
+            var response = await client.GetAsync($"https://localhost:44381/api/Purchase/GetAllPurchaseOrderById?PID={PurchaseOrderId}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var jsondata = await response.Content.ReadAsStringAsync();
+                var purchaseRequest = JsonConvert.DeserializeObject<PurchaseRequest>(jsondata);
+                return View(purchaseRequest); // Return the view with purchase order and stocks
+            }
+
+            return NotFound(); // Handle the case when the purchase order is not found
+        }
+
 
 
 

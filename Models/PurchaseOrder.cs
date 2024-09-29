@@ -4,8 +4,8 @@ namespace BillBookApiConsuming.Models
 {
     public class PurchaseOrder
     {
-        //[Key]
-        //public int? PurchaseOrderId { get; set; }
+        [Key]
+        public int? PurchaseOrderId { get; set; } = 0;
 
         public int? BusinessId { get; set; }
         public DateTime? PurchaseDate { get; set; }
