@@ -22,7 +22,9 @@ namespace BillBookApiConsuming.Controllers
         public async Task<IActionResult> Index()
         {
             var categories = await GetAllCategoriesAsync();
-           
+            var parties = await GetAllPartiesAsync(); // Fetch parties
+            ViewBag.Parties = parties; // Pass parties to the view
+
             return View(categories);
         }
 
@@ -51,7 +53,6 @@ namespace BillBookApiConsuming.Controllers
                 var jsondata = await response.Content.ReadAsStringAsync();
                 itemList = JsonConvert.DeserializeObject<List<Inventories>>(jsondata);
             }
-
             return Json(itemList); // Return JSON data
         }
 
@@ -80,6 +81,38 @@ namespace BillBookApiConsuming.Controllers
                 return BadRequest("Error creating purchase order.");
             }
         }
+
+
+        private async Task<List<Parties>> GetAllPartiesAsync()
+        {
+            string url = "https://localhost:44381/api/Purchase/GetAllParties";
+            var response = await client.GetAsync(url);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var jsondata = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<List<Parties>>(jsondata);
+            }
+            return new List<Parties>(); // Return an empty list on failure
+        }
+
+        //Will try dynamically showing quantity
+
+        //[HttpGet]
+        //public async Task<JsonResult> GetPartyStocks(int businessId, int purchaseOrderId)
+        //{
+        //    string url = $"https://localhost:44381/api/Purchase/GetPartyStocksByBusinessId/{businessId}/{purchaseOrderId}";
+        //    var response = await client.GetAsync(url);
+        //    List<MyStock> stockList = new List<MyStock>();
+
+        //    if (response.IsSuccessStatusCode)
+        //    {
+        //        var jsondata = await response.Content.ReadAsStringAsync();
+        //        stockList = JsonConvert.DeserializeObject<List<MyStock>>(jsondata);
+        //    }
+        //    return Json(stockList); // Return JSON data
+        //}
+
 
 
 

@@ -41,7 +41,14 @@
     <form asp-action="NewPurchase" method="post">
         <h3>Purchase Order Details</h3>
         Bill From:
-        <input type="text" name="PurchaseOrder.PartyName" placeholder="Party Name" required />
+        <label for="parties">Bill From:</label>
+        <select id="parties" name="PurchaseOrder.PartyName" required>
+            <option value="">-- Select a Party --</option>
+            @foreach (var party in ViewBag.Parties)
+            {
+                <option value="@party.PartyName">@party.PartyName</option>
+            }
+        </select>
         Valid Till:
         <input type="date" name="PurchaseOrder.ValidTill" required />
 
@@ -100,9 +107,11 @@
                                                     <td>${item.purchasePrice}</td>
                                                     <td>${item.openingStock}</td>
                                                     <td>
-                                                        <input type="number" class="quantity-input" name="Stocks[${index}].Quantity" min="1" max="${item.openingStock}" value="1" />
+                                                        <input type="number" class="quantity-input" name="Stocks[${index}].Quantity" min="1" max="${item.openingStock}" value="1"/>
                                                         <input type="hidden" name="Stocks[${index}].ItemName" value="${item.itemName}" />
                                                         <input type="hidden" name="Stocks[${index}].ItemCode" value="${item.itemCode}" />
+                                                        <input type="hidden" name="Stocks[${index}].HSNCode" value="${item.HSNCode}" />
+
                                                         <input type="hidden" name="Stocks[${index}].Category" value="${selectedcat}" />
                                                         <input type="hidden" name="Stocks[${index}].PurchaseOrderId" value="0" />
                                                     </td>
