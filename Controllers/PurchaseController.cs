@@ -6,18 +6,18 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
-using BillBookApiConsuming.Data;
+//using BillBookApiConsuming.Data;
 
 namespace BillBookApiConsuming.Controllers
 {
     public class PurchaseController : Controller
     {
         HttpClient client;                      //Declaring global object of HttpClient class 
-        private readonly ApplicationDbContext db;
-        public PurchaseController(ApplicationDbContext db)
+        //private readonly ApplicationDbContext db;
+        public PurchaseController(/*ApplicationDbContext db*/)
         {
 
-            this.db = db;
+            //this.db = db;
 
             HttpClientHandler clientHandler = new HttpClientHandler();
             clientHandler.ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => { return true; };
@@ -235,6 +235,9 @@ namespace BillBookApiConsuming.Controllers
             return View();
         }
 
+
+
+
         [HttpPost]
         public async Task<IActionResult> SubmitPayment(int purchaseOrderId, string paymentMethod)
         {
@@ -243,24 +246,52 @@ namespace BillBookApiConsuming.Controllers
                 return BadRequest("Invalid payment method.");
             }
 
-            var purchaseOrder = await db.PurchaseOrders.FindAsync(purchaseOrderId);
-            if (purchaseOrder == null)
+            // Create the payment request object
+            var paymentRequest = new PaymentRequest
             {
-                return NotFound("Purchase order not found.");
+                PurchaseOrderId = purchaseOrderId,
+                PaymentMethod = paymentMethod
+            };
+
+            // API call to submit payment
+            var jsonRequest = JsonConvert.SerializeObject(paymentRequest);
+            var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
+            var result = await client.PostAsync("https://localhost:44381/api/Purchase/SubmitPayment", content);
+
+            if (result.IsSuccessStatusCode)
+            {
+                TempData["SuccessMessage"] = "Payment processed successfully.";
+                return RedirectToAction("ListPurchaseOrders"); // Redirect to the ListPurchaseOrders action
             }
 
-            purchaseOrder.Status = "Paid";
-            await db.SaveChangesAsync(); // Save changes to the database
-
-            TempData["SuccessMessage"] = "Payment processed successfully.";
-            return RedirectToAction("ListPurchaseOrders");
+            return BadRequest("Error processing payment.");
         }
 
 
 
+        //This below is direct interaction with database , we only created the context file and folder
+        //for his particular code , so we put it into api to hide db logic
 
+        //[HttpPost]
+        //public async Task<IActionResult> SubmitPayment(int purchaseOrderId, string paymentMethod)
+        //{
+        //    if (string.IsNullOrEmpty(paymentMethod))
+        //    {
+        //        return BadRequest("Invalid payment method.");
+        //    }
 
+        //    var purchaseOrder = await db.PurchaseOrders.FindAsync(purchaseOrderId);
+        //    if (purchaseOrder == null)
+        //    {
+        //        return NotFound("Purchase order not found.");
+        //    }
 
+        //    purchaseOrder.Status = "Paid";
+        //    await db.SaveChangesAsync(); // Save changes to the database
+
+        //    TempData["SuccessMessage"] = "Payment processed successfully.";
+        //    return RedirectToAction("ListPurchaseOrders");
+        //}
 
 
     }

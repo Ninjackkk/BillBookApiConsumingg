@@ -8,7 +8,7 @@ namespace BillBookApiConsuming.Models
         public int ItemId { get; set; }
         public bool ItemType { get; set; }
         public int CategoryID { get; set; }
-        public int? Quantity { get; set; }
+        //public int? Quantity { get; set; }
         public string ItemName { get; set; }
         public double SalesPrice { get; set; }
         public string GSTTaxRate { get; set; }
